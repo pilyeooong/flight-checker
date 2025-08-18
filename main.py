@@ -46,7 +46,8 @@ def main():
                     found_any_flights = True
                     # 헤더에 날짜와 노선 정보 추가
                     header = f"✈️ *{route_info} ({formatted_date})*\n"
-                    header += f"🔍 *발견된 항공편: {len(schedules)}개*\n\n"
+                    header += f"🔍 *발견된 항공편: {len(schedules)}개*\n"
+                    header += f"🔗 <{url}|예약 페이지 바로가기>\n\n"
                     
                     flights_info = "\n".join([
                         f"*{schedule['airline_name']}*\n⏰ {schedule['departure_time']} → {schedule['arrival_time']}"
