@@ -13,7 +13,7 @@
 - `SLACK_WEBHOOK_URL`
   - https://xxx.slackwebhook.com
 - `FLIGHT_SCHEDULE_URL`
-  - https://sky.interpark.com/schedules/domestic/CJU-GMP-20240918?adt=2&chd=0&inf=0&seat=DOMESTIC_BASE&pickAirLine=&pickMainFltNo=&pickSDate=
+  - https://travel.interpark.com/air/search/a:CJU-a:GMP-20250822?adult=2&child=0&infant=0&cabin=ECONOMY&byAirline=
 
 1. git clone
 2. pip install -r requirements.txt
