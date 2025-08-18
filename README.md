@@ -13,7 +13,8 @@
 - `SLACK_WEBHOOK_URL`
   - https://xxx.slackwebhook.com
 - `FLIGHT_SCHEDULE_URL`
-  - https://travel.interpark.com/air/search/a:CJU-a:GMP-20250822?adult=2&child=0&infant=0&cabin=ECONOMY&byAirline=
+  - 단일 URL: `https://travel.interpark.com/air/search/a:CJU-a:GMP-20250822?adult=2&child=0&infant=0&cabin=ECONOMY&byAirline=`
+  - 여러 URL (쉼표로 구분): `https://travel.interpark.com/air/search/a:GMP-a:CJU-20250822?adult=2&child=0&infant=0&cabin=ECONOMY&byAirline=,https://travel.interpark.com/air/search/a:CJU-a:GMP-20250823?adult=2&child=0&infant=0&cabin=ECONOMY&byAirline=`
 
 1. git clone
 2. pip install -r requirements.txt
