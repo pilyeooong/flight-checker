@@ -72,12 +72,33 @@ def get_flight_schedules(url):
         
         # 항공사명 요소들 찾기 (더 안정적인 선택자 사용)
         airline_elements = soup.find_all('p', class_='text__Text-sc-365491ba-0 bhIIqI')
-        # 시간 요소들 찾기  
-        time_elements = soup.find_all('p', class_='text__Text-sc-365491ba-0 dkOzsE')
+        # 시간/가격 요소들 찾기  
+        time_price_elements = soup.find_all('p', class_='text__Text-sc-365491ba-0 dkOzsE')
+        # 할인가격 요소들 찾기
+        discount_price_elements = soup.find_all('p', class_='text__Text-sc-365491ba-0 sc-984bfad1-0 sc-984bfad1-1 kODgaI ezUBsp dPMDqw')
         
-        print(f"발견된 항공사: {len(airline_elements)}개, 시간: {len(time_elements)}개")
+        print(f"발견된 항공사: {len(airline_elements)}개, 시간/가격: {len(time_price_elements)}개, 할인가격: {len(discount_price_elements)}개")
         
-        # 항공사와 시간 데이터를 매칭하여 항공편 정보 생성
+        # 시간과 가격 요소 분리
+        time_elements = []
+        price_elements = []
+        
+        for elem in time_price_elements:
+            text = elem.text.strip()
+            if ' - ' in text and ':' in text:
+                time_elements.append(elem)
+            elif '원' in text:
+                price_elements.append(elem)
+        
+        # 할인가격도 추가
+        for elem in discount_price_elements:
+            text = elem.text.strip()
+            if '원' in text:
+                price_elements.append(elem)
+        
+        print(f"분리된 시간: {len(time_elements)}개, 가격: {len(price_elements)}개")
+        
+        # 항공사, 시간, 가격 매칭하여 항공편 정보 생성
         min_count = min(len(airline_elements), len(time_elements))
         
         for i in range(min_count):
@@ -94,9 +115,10 @@ def get_flight_schedules(url):
                     departure_time = times[0].strip()
                     arrival_time = times[1].strip()
             
-            # 가격 정보는 현재 명확한 선택자를 찾지 못했으므로 None으로 설정
-            # 추후 가격 선택자가 확인되면 추가 가능
+            # 가격 정보 매칭 (항공편 순서대로)
             fee = None
+            if i < len(price_elements):
+                fee = price_elements[i].text.strip()
             
             if airline_name and departure_time and arrival_time:
                 flight_info = {
@@ -106,7 +128,8 @@ def get_flight_schedules(url):
                     "fee": fee
                 }
                 flight_info_list.append(flight_info)
-                print(f"항공편 추가: {airline_name} {departure_time}-{arrival_time}")
+                price_info = f" ({fee})" if fee else ""
+                print(f"항공편 추가: {airline_name} {departure_time}-{arrival_time}{price_info}")
         
         return flight_info_list
         
