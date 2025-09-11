@@ -70,8 +70,8 @@ def get_flight_schedules(url):
         # 새로운 선택자로 항공편 데이터 추출
         flight_info_list = []
         
-        # 항공사명 요소들 찾기
-        airline_elements = soup.find_all('p', class_='text__Text-sc-365491ba-0 dgsTUN')
+        # 항공사명 요소들 찾기 (더 안정적인 선택자 사용)
+        airline_elements = soup.find_all('p', class_='text__Text-sc-365491ba-0 bhIIqI')
         # 시간 요소들 찾기  
         time_elements = soup.find_all('p', class_='text__Text-sc-365491ba-0 dkOzsE')
         
