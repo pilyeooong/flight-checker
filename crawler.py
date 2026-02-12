@@ -1,11 +1,11 @@
 import os
+import re
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -56,71 +56,36 @@ def get_flight_schedules(url):
 
     try:
         print("페이지 로딩 중...")
-        # React 앱 로딩을 위해 충분한 시간 대기
         time.sleep(20)
-        
-        # 페이지 스크롤로 동적 콘텐츠 로딩 트리거
+
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(5)
         driver.execute_script("window.scrollTo(0, 0);")
         time.sleep(5)
-        
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        
-        # 새로운 선택자로 항공편 데이터 추출
+
+        # 버튼 텍스트 기반 파싱 (CSS 클래스 해시에 의존하지 않음)
+        buttons = driver.find_elements(By.TAG_NAME, 'button')
+
         flight_info_list = []
-        
-        # 항공사명 요소들 찾기 (더 안정적인 선택자 사용)
-        airline_elements = soup.find_all('p', class_='text__Text-sc-365491ba-0 bhIIqI')
-        # 시간/가격 요소들 찾기  
-        time_price_elements = soup.find_all('p', class_='text__Text-sc-365491ba-0 dkOzsE')
-        # 할인가격 요소들 찾기
-        discount_price_elements = soup.find_all('p', class_='text__Text-sc-365491ba-0 sc-984bfad1-0 sc-984bfad1-1 kODgaI ezUBsp dPMDqw')
-        
-        print(f"발견된 항공사: {len(airline_elements)}개, 시간/가격: {len(time_price_elements)}개, 할인가격: {len(discount_price_elements)}개")
-        
-        # 시간과 가격 요소 분리
-        time_elements = []
-        price_elements = []
-        
-        for elem in time_price_elements:
-            text = elem.text.strip()
-            if ' - ' in text and ':' in text:
-                time_elements.append(elem)
-            elif '원' in text:
-                price_elements.append(elem)
-        
-        # 할인가격도 추가
-        for elem in discount_price_elements:
-            text = elem.text.strip()
-            if '원' in text:
-                price_elements.append(elem)
-        
-        print(f"분리된 시간: {len(time_elements)}개, 가격: {len(price_elements)}개")
-        
-        # 항공사, 시간, 가격 매칭하여 항공편 정보 생성
-        min_count = min(len(airline_elements), len(time_elements))
-        
-        for i in range(min_count):
-            airline_name = airline_elements[i].text.strip() if airline_elements[i] else None
-            time_text = time_elements[i].text.strip() if time_elements[i] else None
-            
-            # 시간 텍스트에서 출발시간과 도착시간 분리 (예: "07:55 - 09:10")
-            departure_time = None
-            arrival_time = None
-            
-            if time_text and ' - ' in time_text:
-                times = time_text.split(' - ')
-                if len(times) == 2:
-                    departure_time = times[0].strip()
-                    arrival_time = times[1].strip()
-            
-            # 가격 정보 매칭 (항공편 순서대로)
-            fee = None
-            if i < len(price_elements):
-                fee = price_elements[i].text.strip()
-            
-            if airline_name and departure_time and arrival_time:
+        seen = set()
+        flight_pattern = re.compile(
+            r'(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s+([\d,]+원)\s+(\S+)'
+        )
+
+        for btn in buttons:
+            text = ' '.join(btn.text.split())
+            match = flight_pattern.search(text)
+            if match:
+                departure_time = match.group(1)
+                arrival_time = match.group(2)
+                fee = match.group(3)
+                airline_name = match.group(4)
+
+                key = (airline_name, departure_time, arrival_time)
+                if key in seen:
+                    continue
+                seen.add(key)
+
                 flight_info = {
                     "airline_name": airline_name,
                     "departure_time": departure_time,
@@ -128,11 +93,11 @@ def get_flight_schedules(url):
                     "fee": fee
                 }
                 flight_info_list.append(flight_info)
-                price_info = f" ({fee})" if fee else ""
-                print(f"항공편 추가: {airline_name} {departure_time}-{arrival_time}{price_info}")
-        
+                print(f"항공편 추가: {airline_name} {departure_time}-{arrival_time} ({fee})")
+
+        print(f"총 {len(flight_info_list)}개 항공편 발견")
         return flight_info_list
-        
+
     except Exception as e:
         print(f"크롤링 오류: {e}")
         return []

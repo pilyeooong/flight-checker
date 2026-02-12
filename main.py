@@ -31,7 +31,7 @@ def main():
                     formatted_date = "날짜 정보 없음"
                 
                 # URL에서 노선 정보 추출
-                route_match = re.search(r'a:([A-Z]+)-a:([A-Z]+)', url)
+                route_match = re.search(r'[ac]:([A-Z]+)-[ac]:([A-Z]+)', url)
                 if route_match:
                     departure = route_match.group(1)
                     arrival = route_match.group(2)
